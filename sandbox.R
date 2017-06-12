@@ -1,12 +1,3 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: false
----
-
-## Loading and preprocessing the data
-```{r load_data, results = "hide"}
 if (!dir.exists("data")) {
     dir.create("data")
 }
@@ -17,10 +8,8 @@ activity_data <- read.csv("data/activity.csv")
 library(dplyr)
 library(ggplot2)
 library(xtable)
-```
 
-## Histogram of total number of steps taken in a day
-```{r total_steps_per_day_histogram, fig.keep="all", fig.show="asis"}
+# mean of the total steps per day
 activity_summary <- activity_data %>%
     mutate_if(is.factor, as.Date) %>%
     group_by(date) %>%
@@ -34,34 +23,27 @@ print(qplot(activity_summary$total_steps,
     ylab = "Count",
     col = I("red"),
     fill = I("green")))
-```
 
-## What is mean and median of the total number of steps taken per day?
-```{r total_steps_mean, results = "asis"}
 steps_table <- as.data.frame(activity_data %>%
     mutate_if(is.factor, as.character) %>%
     group_by(date) %>%
     filter(!is.na(steps)) %>%
     summarise(mean_steps = mean(steps),
-		median_steps = median(steps)) %>%
-	select(Date = date, Mean = mean_steps, Median = median_steps))
+        median_steps = median(steps)) %>%
+    select(Date = date, Mean = mean_steps, Median = median_steps))
 
 xt <- xtable(steps_table,
     align = "llrr",
     digits = xdigits(steps_table),
-	display = xdisplay(steps_table))
+    display = xdisplay(steps_table))
 
 print(xt,
-	type = "html",
     include.rownames = FALSE)
-```
 
-## What is the average daily activity pattern?
+# activity pattern
+activity_pattern <- as.data.frame(activity_data %>%
+    mutate_if(is.factor, as.character) %>%
+    group_by(interval) %>%
+    summarise(mean_steps = mean(steps)) %>%
+    select(Interval = interval, Steps = mean_steps))
 
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?

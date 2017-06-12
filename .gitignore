@@ -240,3 +240,11 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+# Project Specifics
+/data
+/rmd_*
+rmd_*.md
+.Rproj.user
+/PA1_template.md
+/PA1_template.html
