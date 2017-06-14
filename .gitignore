@@ -245,6 +245,7 @@ ModelManifest.xml
 /data
 /rmd_*
 rmd_*.md
+.Rhistory
 .Rproj.user
 /PA1_template.md
 /PA1_template.html
