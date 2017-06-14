@@ -57,8 +57,20 @@ print(xt,
 ```
 
 ## What is the average daily activity pattern?
+```{r average_daily_activity, results = "asis"}
+activity_pattern <- activity_data %>%
+    mutate_if(is.factor, as.character) %>%
+    group_by(interval) %>%
+    summarise(average_steps = mean(steps, na.rm = TRUE))
 
 
+pattern_plot <- ggplot(data = activity_pattern, mapping = aes(interval, average_steps)) +
+    geom_smooth(method = "lm", se = FALSE) +
+	theme_linedraw(base_size = 14) +
+    xlab("Interval (5 min)") +
+    ylab("Average Steps")
+print(pattern_plot)
+```
 
 ## Imputing missing values
 

@@ -41,9 +41,12 @@ print(xt,
     include.rownames = FALSE)
 
 # activity pattern
-activity_pattern <- as.data.frame(activity_data %>%
+activity_pattern <- activity_data %>%
     mutate_if(is.factor, as.character) %>%
     group_by(interval) %>%
-    summarise(mean_steps = mean(steps)) %>%
-    select(Interval = interval, Steps = mean_steps))
+    summarise(average_steps = mean(steps, na.rm = TRUE))
 
+
+pattern_plot <- ggplot(data = activity_pattern, mapping = aes(interval, average_steps)) +
+    geom_smooth(method = "lm", se = FALSE)
+print(pattern_plot)
