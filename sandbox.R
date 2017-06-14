@@ -10,43 +10,50 @@ library(ggplot2)
 library(xtable)
 
 # mean of the total steps per day
-activity_summary <- activity_data %>%
-    mutate_if(is.factor, as.Date) %>%
-    group_by(date) %>%
-    filter(!is.na(steps)) %>%
-    summarise(total_steps = sum(steps))
+#activity_summary <- activity_data %>%
+    #mutate_if(is.factor, as.Date) %>%
+    #group_by(date) %>%
+    #filter(!is.na(steps)) %>%
+    #summarise(total_steps = sum(steps))
 
-print(qplot(activity_summary$total_steps,
-    geom = "histogram",
-    bins = nrow(activity_summary),
-    xlab = "Total Steps",
-    ylab = "Count",
-    col = I("red"),
-    fill = I("green")))
+#print(qplot(activity_summary$total_steps,
+    #geom = "histogram",
+    #bins = nrow(activity_summary),
+    #xlab = "Total Steps",
+    #ylab = "Count",
+    #col = I("red"),
+    #fill = I("green")))
 
-steps_table <- as.data.frame(activity_data %>%
-    mutate_if(is.factor, as.character) %>%
-    group_by(date) %>%
-    filter(!is.na(steps)) %>%
-    summarise(mean_steps = mean(steps),
-        median_steps = median(steps)) %>%
-    select(Date = date, Mean = mean_steps, Median = median_steps))
+#steps_table <- as.data.frame(activity_data %>%
+    #mutate_if(is.factor, as.character) %>%
+    #group_by(date) %>%
+    #filter(!is.na(steps)) %>%
+    #summarise(mean_steps = mean(steps),
+        #median_steps = median(steps)) %>%
+    #select(Date = date, Mean = mean_steps, Median = median_steps))
 
-xt <- xtable(steps_table,
-    align = "llrr",
-    digits = xdigits(steps_table),
-    display = xdisplay(steps_table))
+#xt <- xtable(steps_table,
+    #align = "llrr",
+    #digits = xdigits(steps_table),
+    #display = xdisplay(steps_table))
 
-print(xt,
-    include.rownames = FALSE)
+#print(xt,
+    #include.rownames = FALSE)
 
 # activity pattern
-activity_pattern <- activity_data %>%
-    mutate_if(is.factor, as.character) %>%
-    group_by(interval) %>%
-    summarise(average_steps = mean(steps, na.rm = TRUE))
+#activity_pattern <- activity_data %>%
+    #mutate_if(is.factor, as.character) %>%
+    #group_by(interval) %>%
+    #summarise(average_steps = mean(steps, na.rm = TRUE))
 
 
-pattern_plot <- ggplot(data = activity_pattern, mapping = aes(interval, average_steps)) +
-    geom_smooth(method = "lm", se = FALSE)
-print(pattern_plot)
+#pattern_plot <- ggplot(data = activity_pattern, mapping = aes(interval, average_steps)) +
+    #geom_smooth(method = "lm", se = FALSE)
+#print(pattern_plot)
+
+missing_data <- activity_data[is.na(activity_data$steps),]
+missing_values <- count(missing_data)
+
+imputed_values <- activity_data %>%
+    group_by(date) %>%
+    summarise(middle_steps = median(steps, na.rm = TRUE))

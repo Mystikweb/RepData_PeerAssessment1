@@ -63,7 +63,6 @@ activity_pattern <- activity_data %>%
     group_by(interval) %>%
     summarise(average_steps = mean(steps, na.rm = TRUE))
 
-
 pattern_plot <- ggplot(data = activity_pattern, mapping = aes(interval, average_steps)) +
     geom_smooth(method = "lm", se = FALSE) +
 	theme_linedraw(base_size = 14) +
@@ -73,7 +72,15 @@ print(pattern_plot)
 ```
 
 ## Imputing missing values
+```{r handle_missing_values}
+missing_data <- activity_data[is.na(activity_data$steps),]
+missing_values <- count(missing_data)
 
+imputed_values <- activity_data %>%
+    group_by(date) %>%
+	summarise(average_steps = mean(steps, na.rm = TRUE))
+```
 
+####There are `r missing_values` missing values.
 
 ## Are there differences in activity patterns between weekdays and weekends?
