@@ -6,7 +6,7 @@ output:
 ---
 
 ## Loading and preprocessing the data
-```{r load_data, results = "hide"}
+```{r load_data, message=FALSE}
 if (!dir.exists("data")) {
     dir.create("data")
 }
@@ -17,6 +17,7 @@ activity_data <- read.csv("data/activity.csv")
 library(dplyr)
 library(ggplot2)
 library(huxtable)
+library(chron)
 ```
 
 ## Histogram of total number of steps taken in a day in the raw data
