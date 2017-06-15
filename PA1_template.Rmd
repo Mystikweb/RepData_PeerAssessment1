@@ -2,7 +2,7 @@
 title: "Reproducible Research: Peer Assessment 1"
 output: 
   html_document:
-    keep_md: false
+    keep_md: true
 ---
 
 ## Loading and preprocessing the data
@@ -16,44 +16,41 @@ activity_data <- read.csv("data/activity.csv")
 
 library(dplyr)
 library(ggplot2)
-library(xtable)
+library(huxtable)
 ```
 
-## Histogram of total number of steps taken in a day
+## Histogram of total number of steps taken in a day in the raw data
 ```{r total_steps_per_day_histogram, fig.keep="all", fig.show="asis"}
 activity_summary <- activity_data %>%
     mutate_if(is.factor, as.Date) %>%
     group_by(date) %>%
     filter(!is.na(steps)) %>%
-    summarise(total_steps = sum(steps))
+    summarise(total_steps = sum(steps, na.rm = TRUE))
 
 print(qplot(activity_summary$total_steps,
     geom = "histogram",
     bins = nrow(activity_summary),
-    xlab = "Total Steps",
+    xlab = "Total Steps from Raw Data",
     ylab = "Count",
     col = I("red"),
     fill = I("green")))
 ```
 
-## What is mean and median of the total number of steps taken per day?
-```{r total_steps_mean, results = "asis"}
-steps_table <- as.data.frame(activity_data %>%
+## What is mean and median of the total number of steps taken per day in the raw data?
+```{r total_steps_table, results = "asis"}
+steps_table <- activity_data %>%
     mutate_if(is.factor, as.character) %>%
     group_by(date) %>%
     filter(!is.na(steps)) %>%
     summarise(mean_steps = mean(steps),
 		median_steps = median(steps)) %>%
-	select(Date = date, Mean = mean_steps, Median = median_steps))
+	select(Date = date, Mean = mean_steps, Median = median_steps)
 
-xt <- xtable(steps_table,
-    align = "llrr",
-    digits = xdigits(steps_table),
-	display = xdisplay(steps_table))
-
-print(xt,
-	type = "html",
-    include.rownames = FALSE)
+as_hux(steps_table, add_colnames = TRUE) %>%
+    set_bold(1,, TRUE) %>%
+    set_bottom_border(1,, 1) %>%
+	set_right_border(1, 1:2, 1) %>%
+	set_align(,2:3, "center")
 ```
 
 ## What is the average daily activity pattern?
@@ -64,7 +61,7 @@ activity_pattern <- activity_data %>%
     summarise(average_steps = mean(steps, na.rm = TRUE))
 
 pattern_plot <- ggplot(data = activity_pattern, mapping = aes(interval, average_steps)) +
-    geom_smooth(method = "lm", se = FALSE) +
+    geom_line() +
 	theme_linedraw(base_size = 14) +
     xlab("Interval (5 min)") +
     ylab("Average Steps")
@@ -73,14 +70,69 @@ print(pattern_plot)
 
 ## Imputing missing values
 ```{r handle_missing_values}
-missing_data <- activity_data[is.na(activity_data$steps),]
-missing_values <- count(missing_data)
+missing_values <- count(activity_data[is.na(activity_data$steps),])
 
 imputed_values <- activity_data %>%
     group_by(date) %>%
-	summarise(average_steps = mean(steps, na.rm = TRUE))
+    summarise(average_steps = ceiling(mean(steps, na.rm = TRUE))) %>%
+    mutate_if(is.numeric, funs(if_else(is.nan(.), 0.0, .))) %>%
+    mutate_if(is.numeric, as.integer)
+
+activity_tidy <- activity_data %>%
+    inner_join(imputed_values, by = c("date")) %>%
+    mutate(actual_steps = if_else(is.na(steps), average_steps, steps)) %>%
+    select(date, interval, steps = actual_steps)
+```
+###There are `r missing_values` missing values.
+
+## Histogram of total number of steps taken in a day in the tidy data
+```{r tidy_total_steps_per_day_histogram, fig.keep="all", fig.show="asis"}
+tidy_summary <- activity_tidy %>%
+    mutate_if(is.factor, as.Date) %>%
+    group_by(date) %>%
+    summarise(total_steps = sum(steps))
+
+print(qplot(tidy_summary$total_steps,
+    geom = "histogram",
+    bins = nrow(tidy_summary),
+    xlab = "Total Steps from Tidy Data",
+    ylab = "Count",
+    col = I("red"),
+    fill = I("blue")))
 ```
 
-####There are `r missing_values` missing values.
+## What is mean and median of the total number of steps taken per day in the tidy data?
+```{r tidy_steps_table, results = "asis"}
+tidy_table <- activity_tidy %>%
+    mutate_if(is.factor, as.character) %>%
+    group_by(date) %>%
+    summarise(mean_steps = mean(steps),
+		median_steps = median(steps)) %>%
+	select(Date = date, Mean = mean_steps, Median = median_steps)
+
+as_hux(tidy_table, add_colnames = TRUE) %>%
+    set_bold(1,, TRUE) %>%
+    set_bottom_border(1,, 1) %>%
+	set_right_border(1, 1:2, 1) %>%
+	set_align(,2:3, "center")
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r tidy_split_pattern, fig.keep="all", fig.show="asis"}
+activity_split_pattern <- activity_tidy %>%
+    mutate(weekday_weekend = if_else(is.weekend(date), "weekend", "weekday")) %>%
+    mutate_at(vars(weekday_weekend), as.factor) %>%
+    group_by(interval, weekday_weekend) %>%
+    summarise(average_steps = mean(steps))
+
+split_pattern_plot <- ggplot(activity_split_pattern) +
+    geom_line(aes(x = interval, y = average_steps, color = weekday_weekend)) +
+    facet_grid(weekday_weekend ~ .,
+        labeller = as_labeller(c("weekday" = "Weekday", "weekend" = "Weekend"))) +
+    theme_linedraw(base_size = 14) +
+    theme(legend.position = "none") +
+    xlab("Interval (5 min)") +
+    ylab("Average Steps")
+
+print(split_pattern_plot)
+```
